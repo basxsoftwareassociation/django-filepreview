@@ -11,15 +11,19 @@ class FilePreviewField(models.ImageField):
         os.path.join(settings.MEDIA_ROOT, "filepreviews"), create_folder=True
     )
 
-    def __init__(self, filefieldname, **kwargs):
+    def __init__(self, filefieldname, width=200, height=200, **kwargs):
         kwargs["editable"] = False
         kwargs["default"] = ""
         self.filefieldname = filefieldname
+        self.width = width
+        self.height = height
         super().__init__(**kwargs)
 
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
         args = [self.filefieldname] + args
+        kwargs["width"] = self.width
+        kwargs["height"] = self.height
         return name, path, args, kwargs
 
     def pre_save(self, model_instance, add):
@@ -28,5 +32,7 @@ class FilePreviewField(models.ImageField):
 
     def _generate_preview(self, model_instance):
         return FilePreviewField.PREVIEW_MANAGER.get_jpeg_preview(
-            getattr(model_instance, self.filefieldname).path, height=200, width=200
+            getattr(model_instance, self.filefieldname).path,
+            width=self.widt,
+            height=self.heighth,
         )[len(settings.MEDIA_ROOT) + 1 :]
