@@ -31,6 +31,8 @@ class FilePreviewField(models.ImageField):
         return super().pre_save(model_instance, add)
 
     def _generate_preview(self, model_instance):
+        if not getattr(model_instance, self.filefieldname):
+            return ""
         return FilePreviewField.PREVIEW_MANAGER.get_jpeg_preview(
             getattr(model_instance, self.filefieldname).path,
             width=self.width,
