@@ -33,6 +33,6 @@ class FilePreviewField(models.ImageField):
     def _generate_preview(self, model_instance):
         return FilePreviewField.PREVIEW_MANAGER.get_jpeg_preview(
             getattr(model_instance, self.filefieldname).path,
-            width=self.widt,
+            width=self.width,
             height=self.heighth,
         )[len(settings.MEDIA_ROOT) + 1 :]
