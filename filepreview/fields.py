@@ -34,5 +34,5 @@ class FilePreviewField(models.ImageField):
         return FilePreviewField.PREVIEW_MANAGER.get_jpeg_preview(
             getattr(model_instance, self.filefieldname).path,
             width=self.width,
-            height=self.heighth,
+            height=self.height,
         )[len(settings.MEDIA_ROOT) + 1 :]
