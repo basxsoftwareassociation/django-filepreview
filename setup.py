@@ -16,6 +16,8 @@ setup(
     author_email="info@basx.dev",
     license="Private",
     install_requires=["preview-generator", "django"],
+    setup_requires=["setuptools_scm"],
+    use_scm_version={"write_to": "filepreview/version.py"},
     packages=find_packages(),
     zip_safe=False,
     include_package_data=True,
