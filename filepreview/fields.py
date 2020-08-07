@@ -1,9 +1,25 @@
 import os
+from functools import partialmethod
 
 from django.conf import settings
 from django.db import models
+from django.utils.html import mark_safe
 
 from preview_generator.manager import PreviewManager
+
+
+def _tohtml(obj, previewfield):
+    previewfile = getattr(obj, previewfield.name)
+    originalfile = getattr(obj, previewfield.filefieldname)
+    if previewfile:
+        return mark_safe(
+            f'<a href="{originalfile.url}"><img src={previewfile.url} width="{previewfile.width}" height="{previewfile.height}"/></a>'
+        )
+    if originalfile:
+        return mark_safe(
+            f'<a href="{originalfile.url}"><i class="material-icons">open_in_browser</i></a>'
+        )
+    return None
 
 
 class FilePreviewField(models.ImageField):
@@ -18,6 +34,14 @@ class FilePreviewField(models.ImageField):
         self.width = width
         self.height = height
         super().__init__(**kwargs)
+
+    def contribute_to_class(self, cls, name, **kwargs):
+        super().contribute_to_class(cls, name, **kwargs)
+        setattr(
+            cls,
+            "get_%s_display" % self.name,
+            partialmethod(_tohtml, previewfield=self),
+        )
 
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
