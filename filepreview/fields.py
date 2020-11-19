@@ -1,16 +1,21 @@
+import logging
 import os
 from functools import partialmethod
+
+from preview_generator.manager import PreviewManager
 
 from django.conf import settings
 from django.db import models
 from django.utils.html import mark_safe
 
-from preview_generator.manager import PreviewManager
-
 
 def _tohtml(obj, previewfield):
     previewfile = getattr(obj, previewfield.name)
     originalfile = getattr(obj, previewfield.filefieldname)
+    try:
+        previewfile and previewfile.file and originalfile and originalfile.file
+    except FileNotFoundError:
+        return None
     if previewfile:
         return mark_safe(
             f'<a href="{originalfile.url}"><img src={previewfile.url} width="{previewfile.width}" height="{previewfile.height}"/></a>'
@@ -57,8 +62,14 @@ class FilePreviewField(models.ImageField):
     def _generate_preview(self, model_instance):
         if not getattr(model_instance, self.filefieldname):
             return ""
-        return FilePreviewField.PREVIEW_MANAGER.get_jpeg_preview(
-            getattr(model_instance, self.filefieldname).path,
-            width=self.width,
-            height=self.height,
-        )[len(settings.MEDIA_ROOT) + 1 :]
+        try:
+            return FilePreviewField.PREVIEW_MANAGER.get_jpeg_preview(
+                getattr(model_instance, self.filefieldname).path,
+                width=self.width,
+                height=self.height,
+            )[len(settings.MEDIA_ROOT) + 1 :]
+        except Exception:
+            logging.getLogger(__name__).exception(
+                f"Error while generating file preview of {model_instance} on field {self.filefieldname}"
+            )
+            return ""
