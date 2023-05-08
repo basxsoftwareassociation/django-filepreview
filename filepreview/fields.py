@@ -2,11 +2,10 @@ import logging
 import os
 from functools import partialmethod
 
-from preview_generator.manager import PreviewManager
-
 from django.conf import settings
 from django.db import models
 from django.utils.html import mark_safe
+from preview_generator.manager import PreviewManager
 
 
 def _tohtml(obj, previewfield):
@@ -28,10 +27,6 @@ def _tohtml(obj, previewfield):
 
 
 class FilePreviewField(models.ImageField):
-    PREVIEW_MANAGER = PreviewManager(
-        os.path.join(settings.MEDIA_ROOT, "filepreviews"), create_folder=True
-    )
-
     def __init__(self, filefieldname, width=200, height=200, **kwargs):
         kwargs["editable"] = False
         kwargs["default"] = ""
@@ -63,7 +58,10 @@ class FilePreviewField(models.ImageField):
         if not getattr(model_instance, self.filefieldname):
             return ""
         try:
-            return FilePreviewField.PREVIEW_MANAGER.get_jpeg_preview(
+            PREVIEW_MANAGER = PreviewManager(
+                os.path.join(settings.MEDIA_ROOT, "filepreviews"), create_folder=True
+            )
+            return PREVIEW_MANAGER.get_jpeg_preview(
                 getattr(model_instance, self.filefieldname).path,
                 width=self.width,
                 height=self.height,
